@@ -1,9 +1,11 @@
 package com.ponycrm
 
 import com.ponycrm.db.DatabaseFactory
+import com.ponycrm.routes.projectRoutes
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.statuspages.*
@@ -25,7 +27,7 @@ fun Application.module() {
     }
 
     install(CORS) {
-        anyHost() // В проде ограничить!
+        anyHost()
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Authorization)
         allowMethod(HttpMethod.Get)
@@ -50,6 +52,13 @@ fun Application.module() {
             call.respond(mapOf("status" to "ok", "service" to "ponycrm-backend"))
         }
 
-        // Сюда добавим API-эндпоинты
+        get("/swagger") {
+            val swaggerHtml = javaClass.getResource("/swagger.html")?.readText() ?: "Swagger not found"
+            call.respondText(text = swaggerHtml, contentType = ContentType.Text.Html)
+        }
+
+        staticResources("/openapi", "openapi")
+
+        projectRoutes()
     }
 }

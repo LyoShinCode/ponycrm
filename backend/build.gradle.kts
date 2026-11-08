@@ -24,10 +24,6 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
 
-    // Ktor Swagger (OpenAPI)
-    implementation("io.ktor:ktor-server-swagger:$ktorVersion")
-    implementation("org.webjars:swagger-ui:5.10.3")
-
     // Database: Exposed + PostgreSQL
     implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
