@@ -9,7 +9,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
-import java.util.UUID
 
 fun Route.projectRoutes() {
     route("/api/v1/projects") {
@@ -28,7 +27,7 @@ fun Route.projectRoutes() {
         }
 
         post {
-            val newId = UUID.randomUUID().toString()
+            val newId = java.util.UUID.randomUUID()
             DatabaseFactory.dbQuery {
                 ProjectsTable.insert {
                     it[id] = newId
@@ -37,7 +36,7 @@ fun Route.projectRoutes() {
                     it[status] = "planning"
                 }
             }
-            call.respond(HttpStatusCode.Created, mapOf("id" to newId, "message" to "Project created"))
+            call.respond(HttpStatusCode.Created, mapOf("id" to newId.toString(), "message" to "Project created"))
         }
     }
 }
