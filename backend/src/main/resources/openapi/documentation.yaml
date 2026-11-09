@@ -206,7 +206,243 @@ paths:
           description: Участник удалён
         '404':
           description: Участник не найден
+  /api/v1/projects/{projectId}/requirements:
+    get:
+      summary: Получить список требований проекта
+      operationId: getRequirements
+      tags:
+        - Requirements
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RequirementStatus'
+          description: Фильтр по статусу
+        - name: priority
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/RequirementPriority'
+          description: Фильтр по приоритету
+      responses:
+        '200':
+          description: Список требований
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Requirement'
+        '404':
+          description: Проект не найден
+    post:
+      summary: Создать новое требование
+      operationId: createRequirement
+      tags:
+        - Requirements
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequirementUpsertRequest'
+      responses:
+        '201':
+          description: Требование создано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Requirement'
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Проект или автор не найдены
 
+  /api/v1/projects/{projectId}/requirements/{requirementId}:
+    put:
+      summary: Обновить требование
+      operationId: updateRequirement
+      tags:
+        - Requirements
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: requirementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequirementUpsertRequest'
+      responses:
+        '200':
+          description: Требование обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Requirement'
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Требование не найдено
+    delete:
+      summary: Удалить требование
+      operationId: deleteRequirement
+      tags:
+        - Requirements
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: requirementId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Требование удалено
+        '404':
+          description: Требование не найдено
+
+  /api/v1/projects/{projectId}/meetings:
+    get:
+      summary: Получить список конспектов встреч проекта
+      operationId: getMeetingNotes
+      tags:
+        - Meetings
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список конспектов (отсортированы по дате, новые сверху)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MeetingNote'
+        '404':
+          description: Проект не найден
+    post:
+      summary: Создать конспект встречи
+      operationId: createMeetingNote
+      tags:
+        - Meetings
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeetingNoteUpsertRequest'
+      responses:
+        '201':
+          description: Конспект создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingNote'
+        '400':
+          description: Ошибка валидации
+        '404':
+          description: Проект или автор не найдены
+
+  /api/v1/projects/{projectId}/meetings/{meetingId}:
+    put:
+      summary: Обновить конспект встречи
+      operationId: updateMeetingNote
+      tags:
+        - Meetings
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MeetingNoteUpsertRequest'
+      responses:
+        '200':
+          description: Конспект обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeetingNote'
+        '404':
+          description: Конспект не найден
+    delete:
+      summary: Удалить конспект встречи
+      operationId: deleteMeetingNote
+      tags:
+        - Meetings
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: meetingId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Конспект удалён
+        '404':
+          description: Конспект не найден
 components:
   schemas:
     Project:
@@ -340,3 +576,115 @@ components:
         isLead:
           type: boolean
           default: false
+
+    RequirementStatus:
+      type: string
+      enum: [ draft, approved, in_dev, done, rejected ]
+
+    RequirementPriority:
+      type: string
+      enum: [ critical, high, medium, low ]
+
+    Requirement:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        priority:
+          $ref: '#/components/schemas/RequirementPriority'
+        status:
+          $ref: '#/components/schemas/RequirementStatus'
+        authorId:
+          type: string
+          format: uuid
+        authorFio:
+          type: string
+          description: ФИО автора
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    RequirementUpsertRequest:
+      type: object
+      required:
+        - title
+        - priority
+        - status
+        - authorId
+      properties:
+        title:
+          type: string
+          minLength: 1
+        description:
+          type: string
+          nullable: true
+        priority:
+          $ref: '#/components/schemas/RequirementPriority'
+        status:
+          $ref: '#/components/schemas/RequirementStatus'
+        authorId:
+          type: string
+          format: uuid
+
+    MeetingNote:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        projectId:
+          type: string
+          format: uuid
+        title:
+          type: string
+        content:
+          type: string
+          description: Конспект в формате Markdown
+        meetingDate:
+          type: string
+          format: date
+        authorId:
+          type: string
+          format: uuid
+        authorFio:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MeetingNoteUpsertRequest:
+      type: object
+      required:
+        - title
+        - content
+        - meetingDate
+        - authorId
+      properties:
+        title:
+          type: string
+          minLength: 1
+        content:
+          type: string
+          minLength: 1
+          description: Конспект в формате Markdown
+        meetingDate:
+          type: string
+          format: date
+        authorId:
+          type: string
+          format: uuid
