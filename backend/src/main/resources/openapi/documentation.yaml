@@ -41,6 +41,41 @@ paths:
                     format: uuid
                   message:
                     type: string
+  /api/v1/users:
+    get:
+      summary: Получить список всех участников с их ролями
+      operationId: getUsers
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Список участников
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Добавить нового участника (один человек — несколько ролей)
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: Участник создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Ошибка валидации (например, не указаны роли)
 
 components:
   schemas:
@@ -62,3 +97,49 @@ components:
           type: string
           enum: [planning, active, archived]
           description: Текущий статус проекта
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        lastName:
+          type: string
+          description: Фамилия
+        firstName:
+          type: string
+          description: Имя
+        middleName:
+          type: string
+          nullable: true
+          description: Отчество
+        email:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+          description: Все должности человека (может быть несколько)
+    UserCreateRequest:
+      type: object
+      required:
+        - lastName
+        - firstName
+        - roles
+      properties:
+        lastName:
+          type: string
+        firstName:
+          type: string
+        middleName:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        roles:
+          type: array
+          items:
+            type: string
+          minItems: 1
