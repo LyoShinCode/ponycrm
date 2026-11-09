@@ -44,10 +44,10 @@ CREATE TABLE projects (
 CREATE TABLE project_participants (
                                       project_id UUID REFERENCES projects(id) ON DELETE CASCADE,
                                       user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-                                      project_role VARCHAR(100) NOT NULL, -- Роль именно на этом проекте (Архитектор, SME, Бэкенд)
-                                      is_lead BOOLEAN DEFAULT FALSE, -- Ведущий на проекте
+                                      project_role VARCHAR(100) NOT NULL,
+                                      is_lead BOOLEAN DEFAULT FALSE,
                                       joined_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-                                      PRIMARY KEY (project_id, user_id)
+                                      PRIMARY KEY (project_id, user_id, project_role)
 );
 
 -- 5. Реестр требований (requirements)
