@@ -2,6 +2,7 @@ package com.ponycrm
 
 import com.ponycrm.db.DatabaseFactory
 import com.ponycrm.routes.projectRoutes
+import com.ponycrm.routes.userRoutes
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -60,5 +61,7 @@ fun Application.module() {
         staticResources("/openapi", "openapi")
 
         projectRoutes()
+
+        userRoutes()
     }
 }
