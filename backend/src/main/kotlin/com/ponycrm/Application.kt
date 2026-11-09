@@ -3,6 +3,7 @@ package com.ponycrm
 import com.ponycrm.db.DatabaseFactory
 import com.ponycrm.routes.participantRoutes
 import com.ponycrm.routes.projectRoutes
+import com.ponycrm.routes.requirementRoutes
 import com.ponycrm.routes.userRoutes
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
@@ -70,5 +71,9 @@ fun Application.module() {
         userRoutes()
 
         participantRoutes()
+
+        requirementRoutes()
+
+        meetingNoteRoutes()
     }
 }
