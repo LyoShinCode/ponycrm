@@ -1,11 +1,14 @@
 package com.ponycrm
 
 import com.ponycrm.db.DatabaseFactory
+import com.ponycrm.routes.meetingNoteRoutes
 import com.ponycrm.routes.participantRoutes
 import com.ponycrm.routes.projectRoutes
 import com.ponycrm.routes.requirementRoutes
 import com.ponycrm.routes.userRoutes
-import io.ktor.http.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.ContentType
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.call
@@ -46,7 +49,7 @@ fun Application.module() {
 
     install(StatusPages) {
         exception<Throwable> { call, cause ->
-            call.respondText(text = "500: ${cause.message}", status = HttpStatusCode.InternalServerError)
+            call.respondText(text = "500: ${cause.message}", status = io.ktor.http.HttpStatusCode.InternalServerError)
         }
     }
 
@@ -67,13 +70,9 @@ fun Application.module() {
         staticResources("/openapi", "openapi")
 
         projectRoutes()
-
         userRoutes()
-
         participantRoutes()
-
         requirementRoutes()
-
         meetingNoteRoutes()
     }
 }

@@ -48,12 +48,10 @@ fun Route.userRoutes() {
 
         post {
             val request = call.receive<UserCreateRequest>()
-
             if (request.roles.isEmpty()) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "roles must contain at least one item"))
                 return@post
             }
-
             val invalid = RoleCatalog.findInvalidUserRoles(request.roles)
             if (invalid.isNotEmpty()) {
                 call.respond(
@@ -100,7 +98,6 @@ fun Route.userRoutes() {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "roles must contain at least one item"))
                 return@put
             }
-
             val invalid = RoleCatalog.findInvalidUserRoles(request.roles)
             if (invalid.isNotEmpty()) {
                 call.respond(
@@ -122,8 +119,6 @@ fun Route.userRoutes() {
                     it[email] = request.email
                 }
                 if (rows == 0) return@dbQuery 0
-
-                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: импорт SqlExpressionBuilder.eq решает проблему
                 UserRolesTable.deleteWhere { UserRolesTable.userId eq userId }
                 request.roles.forEach { roleName ->
                     UserRolesTable.insert {
@@ -138,7 +133,6 @@ fun Route.userRoutes() {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to "user not found"))
                 return@put
             }
-
             call.respond(
                 HttpStatusCode.OK,
                 UserDto(userId.toString(), request.lastName, request.firstName, request.middleName, request.email, request.roles)
@@ -151,16 +145,13 @@ fun Route.userRoutes() {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid userId"))
                 return@delete
             }
-
             val deletedCount = DatabaseFactory.dbQuery<Int> {
                 UsersTable.deleteWhere { UsersTable.id eq userId }
             }
-
             if (deletedCount == 0) {
                 call.respond(HttpStatusCode.NotFound, mapOf("error" to "user not found"))
                 return@delete
             }
-
             call.respond(HttpStatusCode.NoContent)
         }
     }

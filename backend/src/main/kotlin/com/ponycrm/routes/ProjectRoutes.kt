@@ -5,15 +5,16 @@ import com.ponycrm.dto.ProjectDto
 import com.ponycrm.dto.ProjectUpsertRequest
 import com.ponycrm.enums.ProjectStatus
 import com.ponycrm.models.ProjectsTable
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.update
@@ -41,7 +42,8 @@ fun Route.projectRoutes() {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "name is required"))
                 return@post
             }
-            val status = runCatching { ProjectStatus.valueOf(request.status) }.getOrElse {
+            val status = runCatching { ProjectStatus.valueOf(request.status) }.getOrNull()
+            if (status == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid status"))
                 return@post
             }
@@ -62,37 +64,23 @@ fun Route.projectRoutes() {
         }
 
         put("/{projectId}") {
-            val projectIdParam = call.parameters["projectId"]
-            if (projectIdParam == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "projectId is required"))
-                return@put Unit
-            }
-
-            val projectId = runCatching<UUID> { UUID.fromString(projectIdParam) }.getOrNull()
+            val projectId = runCatching { UUID.fromString(call.parameters["projectId"]) }.getOrNull()
             if (projectId == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid projectId"))
-                return@put Unit
+                return@put
             }
-
             val request = call.receive<ProjectUpsertRequest>()
             if (request.name.isBlank()) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "name is required"))
                 return@put
             }
-
-            val statusParam = request.status
-            if (statusParam.isNullOrBlank()) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid status"))
-                return@put
-            }
-
-            val status: ProjectStatus? = runCatching { ProjectStatus.valueOf(statusParam) }.getOrNull()
+            val status = runCatching { ProjectStatus.valueOf(request.status) }.getOrNull()
             if (status == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid status"))
                 return@put
             }
 
-            val rowsUpdated: Int = DatabaseFactory.dbQuery {
+            val rowsUpdated = DatabaseFactory.dbQuery<Int> {
                 ProjectsTable.update({ ProjectsTable.id eq projectId }) {
                     it[name] = request.name
                     it[description] = request.description
