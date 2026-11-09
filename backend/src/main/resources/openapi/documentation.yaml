@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: PonyCRM API
-  version: 1.3.0
-  description: API для управления проектами и участниками в системе PonyCRM
+  version: 1.4.0
+  description: API для управления проектами, участниками, требованиями и конспектами встреч в системе PonyCRM
 servers:
   - url: http://localhost:8080
     description: Локальный сервер разработки
@@ -123,78 +123,19 @@ paths:
         '409':
           description: Такая связка уже существует
 
-  /api/v1/users:
-    get:
-      summary: Получить список всех участников с их ролями
-      operationId: getUsers
+  /api/v1/projects/{projectId}/participants/{userId}:
+    delete:
+      summary: Удалить участника из команды проекта (удаляет все его роли на проекте)
+      operationId: removeProjectParticipant
       tags:
-        - Users
-      responses:
-        '200':
-          description: Список участников
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
-    post:
-      summary: Добавить нового участника (роли только из фиксированного справочника)
-      operationId: createUser
-      tags:
-        - Users
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserCreateRequest'
-      responses:
-        '201':
-          description: Участник создан
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Ошибка валидации (в том числе недопустимая роль)
-
-  /api/v1/users/{userId}:
-    put:
-      summary: Обновить участника (ФИО, email, роли заменяются полностью)
-      operationId: updateUser
-      tags:
-        - Users
+        - Participants
       parameters:
-        - name: userId
+        - name: projectId
           in: path
           required: true
           schema:
             type: string
             format: uuid
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserCreateRequest'
-      responses:
-        '200':
-          description: Участник обновлён
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Ошибка валидации (в том числе недопустимая роль)
-        '404':
-          description: Участник не найден
-    delete:
-      summary: Удалить участника (каскадно удаляет все его роли и связки с проектами)
-      operationId: deleteUser
-      tags:
-        - Users
-      parameters:
         - name: userId
           in: path
           required: true
@@ -203,9 +144,12 @@ paths:
             format: uuid
       responses:
         '204':
-          description: Участник удалён
+          description: Участник удалён из команды проекта
+        '400':
+          description: Неверный формат идентификатора
         '404':
-          description: Участник не найден
+          description: Связка не найдена (участник не состоит в проекте)
+
   /api/v1/projects/{projectId}/requirements:
     get:
       summary: Получить список требований проекта
@@ -443,6 +387,91 @@ paths:
           description: Конспект удалён
         '404':
           description: Конспект не найден
+
+  /api/v1/users:
+    get:
+      summary: Получить список всех участников с их ролями
+      operationId: getUsers
+      tags:
+        - Users
+      responses:
+        '200':
+          description: Список участников
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Добавить нового участника (роли только из фиксированного справочника)
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '201':
+          description: Участник создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Ошибка валидации (в том числе недопустимая роль)
+
+  /api/v1/users/{userId}:
+    put:
+      summary: Обновить участника (ФИО, email, роли заменяются полностью)
+      operationId: updateUser
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '200':
+          description: Участник обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Ошибка валидации (в том числе недопустимая роль)
+        '404':
+          description: Участник не найден
+    delete:
+      summary: Удалить участника (каскадно удаляет все его роли и связки с проектами)
+      operationId: deleteUser
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Участник удалён
+        '404':
+          description: Участник не найден
+
 components:
   schemas:
     Project:
@@ -579,11 +608,11 @@ components:
 
     RequirementStatus:
       type: string
-      enum: [ draft, approved, in_dev, done, rejected ]
+      enum: [draft, approved, in_dev, done, rejected]
 
     RequirementPriority:
       type: string
-      enum: [ critical, high, medium, low ]
+      enum: [critical, high, medium, low]
 
     Requirement:
       type: object

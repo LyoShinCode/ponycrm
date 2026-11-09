@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { MeetingNote, Participant, Project, Requirement, User } from '../types'
 import ProjectEditModal from '../components/ProjectEditModal'
 import ProjectMemberModal from '../components/ProjectMemberModal'
@@ -27,6 +27,13 @@ const STATUS_RU: Record<string, string> = {
 const PRIORITY_RU: Record<string, string> = {
     critical: 'Критический', high: 'Высокий', medium: 'Средний', low: 'Низкий',
 }
+
+const ROLE_CHIP_COLORS = [
+    'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+    'bg-sky-50 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
+    'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
+    'bg-violet-50 text-violet-700 dark:bg-violet-900/40 dark:text-violet-300',
+]
 
 const inputCls =
     'w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500'
@@ -90,6 +97,15 @@ function ProjectDetailPage({ project, onBack }: Props) {
         })
     }
 
+    const kickParticipant = async (userId: string, fio: string) => {
+        if (!window.confirm(`Удалить ${fio} из команды проекта?\nВсе его роли на этом проекте будут удалены.`)) return
+        const res = await fetch(
+            `http://localhost:8080/api/v1/projects/${project.id}/participants/${userId}`,
+            { method: 'DELETE' }
+        )
+        if (res.ok || res.status === 204) loadBase()
+    }
+
     const deleteRequirement = async (id: string) => {
         if (!window.confirm('Удалить требование?')) return
         const res = await fetch(`http://localhost:8080/api/v1/projects/${project.id}/requirements/${id}`, { method: 'DELETE' })
@@ -105,7 +121,7 @@ function ProjectDetailPage({ project, onBack }: Props) {
     const tabBtn = (t: Tab, label: string, count?: number) => (
         <button
             onClick={() => setTab(t)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+            className={`px-4 py-2.5 rounded-lg text-base font-medium transition ${
                 tab === t ? 'bg-emerald-600 text-white' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
             }`}
         >
@@ -115,28 +131,28 @@ function ProjectDetailPage({ project, onBack }: Props) {
 
     return (
         <div className="max-w-5xl mx-auto">
-            <button onClick={onBack} className="text-sm text-slate-500 hover:text-emerald-600 dark:text-slate-400 mb-4 transition">
+            <button onClick={onBack} className="text-base text-slate-500 hover:text-emerald-600 dark:text-slate-400 mb-4 transition">
                 ← Назад к проектам
             </button>
 
-            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 mb-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6 mb-6">
                 <div className="flex justify-between items-start">
                     <div className="min-w-0">
-                        <h1 className="text-2xl font-bold truncate">{currentProject.name}</h1>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <h1 className="text-3xl font-bold truncate">{currentProject.name}</h1>
+                        <p className="text-base text-slate-500 dark:text-slate-400 mt-2">
                             {currentProject.description || 'Без описания'}
                         </p>
                     </div>
                     <button
                         onClick={() => setEditProject(true)}
-                        className="px-3 py-1.5 rounded-lg text-sm border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition shrink-0 ml-3"
+                        className="px-4 py-2 rounded-lg text-base border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition shrink-0 ml-3"
                     >
                         ✏️ Редактировать
                     </button>
                 </div>
             </div>
 
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-2 mb-5">
                 {tabBtn('team', '👥 Команда', participants.length)}
                 {tabBtn('requirements', '📋 Требования', requirements.length)}
                 {tabBtn('meetings', '📝 Встречи', meetings.length)}
@@ -145,7 +161,11 @@ function ProjectDetailPage({ project, onBack }: Props) {
             {loading ? (
                 <p className="text-slate-500 dark:text-slate-400">Загрузка...</p>
             ) : tab === 'team' ? (
-                <TeamTab participants={participants} onAdd={() => setMemberModal(true)} />
+                <TeamTab
+                    participants={participants}
+                    onAdd={() => setMemberModal(true)}
+                    onKick={kickParticipant}
+                />
             ) : tab === 'requirements' ? (
                 <RequirementsTab
                     requirements={requirements}
@@ -194,37 +214,75 @@ function ProjectDetailPage({ project, onBack }: Props) {
     )
 }
 
-function TeamTab({ participants, onAdd }: { participants: Participant[]; onAdd: () => void }) {
+function TeamTab(props: {
+    participants: Participant[]
+    onAdd: () => void
+    onKick: (userId: string, fio: string) => void
+}) {
+    const { participants, onAdd, onKick } = props
+
+    // Группируем связи по человеку: одна плашка = один участник со списком его проектных ролей
+    const people = useMemo(() => {
+        const map = new Map<string, { fio: string; roles: string[]; isLead: boolean }>()
+        for (const p of participants) {
+            const entry = map.get(p.userId)
+            if (entry) {
+                entry.roles.push(p.projectRole)
+                entry.isLead = entry.isLead || p.isLead
+            } else {
+                map.set(p.userId, { fio: p.fio, roles: [p.projectRole], isLead: p.isLead })
+            }
+        }
+        return Array.from(map.values())
+    }, [participants])
+
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-            <div className="flex justify-between items-center mb-3">
-                <h2 className="font-semibold">Команда проекта</h2>
-                <button onClick={onAdd} className="text-sm text-emerald-600 dark:text-emerald-400 hover:underline">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">Команда проекта</h2>
+                <button onClick={onAdd} className="text-base text-emerald-600 dark:text-emerald-400 hover:underline">
                     + Добавить участника
                 </button>
             </div>
-            {participants.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400">Команда пуста</p>
+            {people.length === 0 ? (
+                <p className="text-base text-slate-500 dark:text-slate-400">Команда пуста</p>
             ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {participants.map((p, i) => (
-                        <div key={`${p.userId}-${p.projectRole}-${i}`} className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
-                            <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-semibold text-xs shrink-0">
-                                {p.fio[0]}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {people.map((person, i) => (
+                        <div
+                            key={`${person.fio}-${i}`}
+                            onClick={() => onKick(person.fio.split(' ')[0] ? person.fio : person.fio, person.fio)}
+                            className="group relative flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600 cursor-pointer hover:border-red-300 dark:hover:border-red-700 hover:bg-red-50/40 dark:hover:bg-red-900/10 transition"
+                            title="Нажмите, чтобы удалить участника из команды"
+                        >
+                            <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-semibold text-base shrink-0">
+                                {person.fio[0]}
                             </div>
-                            <div className="min-w-0">
-                                <p className="font-medium text-sm truncate">{p.fio}</p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{p.projectRole}</p>
+                            <div className="min-w-0 flex-1">
+                                <p className="font-semibold text-base truncate">{person.fio}</p>
+                                <div className="mt-2 flex flex-wrap gap-1.5">
+                                    {person.roles.map((role, ri) => (
+                                        <span key={role} className={`px-2.5 py-1 rounded-full text-xs font-medium ${ROLE_CHIP_COLORS[ri % ROLE_CHIP_COLORS.length]}`}>
+                      {role}
+                    </span>
+                                    ))}
+                                    {person.isLead && (
+                                        <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-600 text-white">
+                      Lead
+                    </span>
+                                    )}
+                                </div>
                             </div>
-                            {p.isLead && (
-                                <span className="ml-auto text-xs bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full shrink-0">
-                  Lead
-                </span>
-                            )}
+                            <span className="absolute top-3 right-3 text-slate-400 group-hover:text-red-600 dark:group-hover:text-red-400 transition text-base" aria-hidden>
+                🗑
+              </span>
                         </div>
                     ))}
                 </div>
             )}
+            <p className="text-xs text-slate-400 dark:text-slate-500 mt-4">
+                Клик по карточке участника удалит его из команды проекта (все его роли на проекте).
+            </p>
         </div>
     )
 }
@@ -241,8 +299,8 @@ function RequirementsTab(props: {
 }) {
     const { requirements, statusFilter, priorityFilter, onStatus, onPriority, onCreate, onEdit, onDelete } = props
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-            <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="flex flex-wrap justify-between items-center gap-3 mb-5">
                 <div className="flex gap-2">
                     <select className={inputCls + ' w-auto'} value={statusFilter} onChange={e => onStatus(e.target.value)}>
                         <option value="">Все статусы</option>
@@ -253,35 +311,35 @@ function RequirementsTab(props: {
                         {PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_RU[p]}</option>)}
                     </select>
                 </div>
-                <button onClick={onCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm">
+                <button onClick={onCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-base">
                     + Новое требование
                 </button>
             </div>
 
             {requirements.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400">Требований пока нет</p>
+                <p className="text-base text-slate-500 dark:text-slate-400">Требований пока нет</p>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {requirements.map(r => (
-                        <div key={r.id} className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
-                            <div className="flex justify-between items-start gap-2">
+                        <div key={r.id} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                            <div className="flex justify-between items-start gap-3">
                                 <div className="min-w-0">
-                                    <h3 className="font-medium text-sm">{r.title}</h3>
+                                    <h3 className="font-semibold text-base">{r.title}</h3>
                                     {r.description && (
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 whitespace-pre-wrap">{r.description}</p>
+                                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1.5 whitespace-pre-wrap">{r.description}</p>
                                     )}
-                                    <p className="text-xs text-slate-400 dark:text-slate-500 mt-2">Автор: {r.authorFio}</p>
+                                    <p className="text-sm text-slate-400 dark:text-slate-500 mt-2">Автор: {r.authorFio}</p>
                                 </div>
-                                <div className="flex flex-col items-end gap-1 shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${PRIORITY_STYLE[r.priority]}`}>
+                                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${PRIORITY_STYLE[r.priority]}`}>
                     {PRIORITY_RU[r.priority]}
                   </span>
-                                    <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_STYLE[r.status]}`}>
+                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_STYLE[r.status]}`}>
                     {STATUS_RU[r.status]}
                   </span>
                                     <div className="flex gap-1 mt-1">
-                                        <button onClick={() => onEdit(r)} className="text-xs text-slate-500 hover:text-emerald-600 px-1">✏️</button>
-                                        <button onClick={() => onDelete(r.id)} className="text-xs text-slate-500 hover:text-red-600 px-1">🗑</button>
+                                        <button onClick={() => onEdit(r)} className="text-base text-slate-500 hover:text-emerald-600 px-1.5">✏️</button>
+                                        <button onClick={() => onDelete(r.id)} className="text-base text-slate-500 hover:text-red-600 px-1.5">🗑</button>
                                     </div>
                                 </div>
                             </div>
@@ -301,32 +359,32 @@ function MeetingsTab(props: {
 }) {
     const { meetings, onCreate, onEdit, onDelete } = props
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5">
-            <div className="flex justify-between items-center mb-4">
-                <h2 className="font-semibold">Конспекты встреч</h2>
-                <button onClick={onCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
+            <div className="flex justify-between items-center mb-5">
+                <h2 className="text-xl font-semibold">Конспекты встреч</h2>
+                <button onClick={onCreate} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-base">
                     + Новая встреча
                 </button>
             </div>
             {meetings.length === 0 ? (
-                <p className="text-sm text-slate-500 dark:text-slate-400">Встреч пока нет</p>
+                <p className="text-base text-slate-500 dark:text-slate-400">Встреч пока нет</p>
             ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {meetings.map(m => (
-                        <div key={m.id} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
-                            <div className="flex justify-between items-start gap-2">
+                        <div key={m.id} className="p-5 bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600">
+                            <div className="flex justify-between items-start gap-3">
                                 <div className="min-w-0">
-                                    <h3 className="font-medium">{m.title}</h3>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    <h3 className="font-semibold text-lg">{m.title}</h3>
+                                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                         📅 {m.meetingDate} · 👤 {m.authorFio}
                                     </p>
                                 </div>
                                 <div className="flex gap-1 shrink-0">
-                                    <button onClick={() => onEdit(m)} className="text-xs text-slate-500 hover:text-emerald-600 px-1">✏️</button>
-                                    <button onClick={() => onDelete(m.id)} className="text-xs text-slate-500 hover:text-red-600 px-1">🗑</button>
+                                    <button onClick={() => onEdit(m)} className="text-base text-slate-500 hover:text-emerald-600 px-1.5">✏️</button>
+                                    <button onClick={() => onDelete(m.id)} className="text-base text-slate-500 hover:text-red-600 px-1.5">🗑</button>
                                 </div>
                             </div>
-                            <pre className="mt-3 text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-sans leading-relaxed">
+                            <pre className="mt-4 text-base text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-sans leading-relaxed">
                 {m.content}
               </pre>
                         </div>
@@ -372,30 +430,30 @@ function RequirementModal(props: {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm" onClick={onClose}>
             <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <h2 className="text-xl font-bold mb-4">{initial ? 'Редактировать требование' : 'Новое требование'}</h2>
-                <div className="mb-3">
-                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Заголовок *</label>
+                <h2 className="text-2xl font-bold mb-5">{initial ? 'Редактировать требование' : 'Новое требование'}</h2>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Заголовок *</label>
                     <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} placeholder="Например: Авторизация через Госуслуги" />
                 </div>
-                <div className="mb-3">
-                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Описание / User Story</label>
-                    <textarea className={inputCls + ' min-h-[100px] resize-y'} value={description} onChange={e => setDescription(e.target.value)} placeholder="Как пользователь, я хочу..., чтобы..." />
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Описание / User Story</label>
+                    <textarea className={inputCls + ' min-h-[110px] resize-y'} value={description} onChange={e => setDescription(e.target.value)} placeholder="Как пользователь, я хочу..., чтобы..." />
                 </div>
-                <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className="grid grid-cols-3 gap-3 mb-4">
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Приоритет</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Приоритет</label>
                         <select className={inputCls} value={priority} onChange={e => setPriority(e.target.value)}>
                             {PRIORITIES.map(p => <option key={p} value={p}>{PRIORITY_RU[p]}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Статус</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Статус</label>
                         <select className={inputCls} value={status} onChange={e => setStatus(e.target.value)}>
                             {STATUSES.map(s => <option key={s} value={s}>{STATUS_RU[s]}</option>)}
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Автор *</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Автор *</label>
                         <select className={inputCls} value={authorId} onChange={e => setAuthorId(e.target.value)}>
                             <option value="">—</option>
                             {users.map(u => <option key={u.id} value={u.id}>{u.lastName} {u.firstName}</option>)}
@@ -404,10 +462,10 @@ function RequirementModal(props: {
                 </div>
                 {error && <p className="text-sm text-red-600 dark:text-red-400 mb-3">{error}</p>}
                 <div className="flex justify-end gap-2">
-                    <button onClick={onClose} disabled={busy} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+                    <button onClick={onClose} disabled={busy} className="px-4 py-2 rounded-lg text-base text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
                         Отмена
                     </button>
-                    <button onClick={submit} disabled={busy} className="px-4 py-2 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition disabled:opacity-50">
+                    <button onClick={submit} disabled={busy} className="px-4 py-2 rounded-lg text-base bg-emerald-600 text-white hover:bg-emerald-700 transition disabled:opacity-50">
                         {busy ? 'Сохраняем...' : 'Сохранить'}
                     </button>
                 </div>
@@ -451,28 +509,28 @@ function MeetingModal(props: {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm" onClick={onClose}>
             <div className="w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
-                <h2 className="text-xl font-bold mb-4">{initial ? 'Редактировать конспект' : 'Новая встреча'}</h2>
-                <div className="mb-3">
-                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Тема встречи *</label>
+                <h2 className="text-2xl font-bold mb-5">{initial ? 'Редактировать конспект' : 'Новая встреча'}</h2>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Тема встречи *</label>
                     <input className={inputCls} value={title} onChange={e => setTitle(e.target.value)} placeholder="Кик-офф с заказчиком" />
                 </div>
-                <div className="grid grid-cols-2 gap-3 mb-3">
+                <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Дата встречи *</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Дата встречи *</label>
                         <input type="date" className={inputCls} value={meetingDate} onChange={e => setMeetingDate(e.target.value)} />
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Вёл (автор) *</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Вёл (автор) *</label>
                         <select className={inputCls} value={authorId} onChange={e => setAuthorId(e.target.value)}>
                             <option value="">—</option>
                             {users.map(u => <option key={u.id} value={u.id}>{u.lastName} {u.firstName}</option>)}
                         </select>
                     </div>
                 </div>
-                <div className="mb-3">
-                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Конспект (Markdown) *</label>
+                <div className="mb-4">
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1.5">Конспект (Markdown) *</label>
                     <textarea
-                        className={inputCls + ' min-h-[160px] resize-y font-mono'}
+                        className={inputCls + ' min-h-[170px] resize-y font-mono'}
                         value={content}
                         onChange={e => setContent(e.target.value)}
                         placeholder={'## Обсудили\n- ...\n\n## Решения\n- ...'}
@@ -480,10 +538,10 @@ function MeetingModal(props: {
                 </div>
                 {error && <p className="text-sm text-red-600 dark:text-red-400 mb-3">{error}</p>}
                 <div className="flex justify-end gap-2">
-                    <button onClick={onClose} disabled={busy} className="px-4 py-2 rounded-lg text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+                    <button onClick={onClose} disabled={busy} className="px-4 py-2 rounded-lg text-base text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
                         Отмена
                     </button>
-                    <button onClick={submit} disabled={busy} className="px-4 py-2 rounded-lg text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition disabled:opacity-50">
+                    <button onClick={submit} disabled={busy} className="px-4 py-2 rounded-lg text-base bg-emerald-600 text-white hover:bg-emerald-700 transition disabled:opacity-50">
                         {busy ? 'Сохраняем...' : 'Сохранить'}
                     </button>
                 </div>

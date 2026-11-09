@@ -13,10 +13,13 @@ import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.update
@@ -110,6 +113,25 @@ fun Route.participantRoutes() {
                 "duplicate" -> call.respond(HttpStatusCode.Conflict, mapOf("error" to "participant already assigned with this role"))
                 else -> call.respond(HttpStatusCode.Created, mapOf("message" to "participant added"))
             }
+        }
+
+        delete("/{userId}") {
+            val projectId = runCatching { UUID.fromString(call.parameters["projectId"]) }.getOrNull()
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid projectId"))
+            val userId = runCatching { UUID.fromString(call.parameters["userId"]) }.getOrNull()
+                ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid userId"))
+
+            val deletedCount = DatabaseFactory.dbQuery<Int> {
+                ProjectParticipantsTable.deleteWhere {
+                    (ProjectParticipantsTable.projectId eq projectId) and
+                            (ProjectParticipantsTable.userId eq userId)
+                }
+            }
+
+            if (deletedCount == 0) {
+                return@delete call.respond(HttpStatusCode.NotFound, mapOf("error" to "participant not found in this project"))
+            }
+            call.respond(HttpStatusCode.NoContent)
         }
     }
 }
