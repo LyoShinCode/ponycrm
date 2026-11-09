@@ -9,17 +9,24 @@ CREATE TYPE requirement_status AS ENUM ('draft', 'approved', 'in_development', '
 CREATE TYPE requirement_priority AS ENUM ('low', 'medium', 'high', 'critical');
 CREATE TYPE artifact_type AS ENUM ('confluence', 'figma', 'jira', 'swagger', 'other');
 
--- 2. Таблица участников (users)
+-- 2. Таблица участников (users) — только персональные данные
 CREATE TABLE users (
                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                        first_name VARCHAR(100) NOT NULL,
                        last_name VARCHAR(100) NOT NULL,
                        middle_name VARCHAR(100),
-                       base_role VARCHAR(100) NOT NULL, -- Базовая должность (Системный аналитик, Дизайнер)
                        email VARCHAR(255) UNIQUE,
                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
+
+-- 2.1. Должности человека (M:N): у одного ФИО может быть НЕСКОЛЬКО ролей
+CREATE TABLE user_roles (
+                            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                            role VARCHAR(100) NOT NULL,
+                            PRIMARY KEY (user_id, role)
+);
+CREATE INDEX idx_user_roles_user ON user_roles(user_id);
 
 -- 3. Таблица проектов (projects)
 CREATE TABLE projects (
