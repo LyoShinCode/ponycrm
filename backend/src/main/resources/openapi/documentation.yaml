@@ -23,55 +23,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Project'
-    /api/v1/projects/{projectId}/participants:
-      get:
-        summary: Получить участников проекта с ролями на проекте
-        operationId: getProjectParticipants
-        tags:
-          - Participants
-        parameters:
-          - name: projectId
-            in: path
-            required: true
-            schema:
-              type: string
-              format: uuid
-        responses:
-          '200':
-            description: Список участников проекта
-            content:
-              application/json:
-                schema:
-                  type: array
-                  items:
-                    $ref: '#/components/schemas/Participant'
-          '404':
-            description: Проект не найден
-      post:
-        summary: Добавить участника на проект
-        operationId: addProjectParticipant
-        tags:
-          - Participants
-        parameters:
-          - name: projectId
-            in: path
-            required: true
-            schema:
-              type: string
-              format: uuid
-        requestBody:
-          required: true
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AddParticipantRequest'
-        responses:
-          '201':
-            description: Участник добавлен на проект
-          '404':
-            description: Проект или пользователь не найден
-          '409':
-            description: Такая связка (проект-участник-роль) уже существует
     post:
       summary: Создать новый тестовый проект
       operationId: createProject
@@ -90,6 +41,57 @@ paths:
                     format: uuid
                   message:
                     type: string
+
+  /api/v1/projects/{projectId}/participants:
+    get:
+      summary: Получить участников проекта с ролями на проекте
+      operationId: getProjectParticipants
+      tags:
+        - Participants
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Список участников проекта
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participant'
+        '404':
+          description: Проект не найден
+    post:
+      summary: Добавить участника на проект
+      operationId: addProjectParticipant
+      tags:
+        - Participants
+      parameters:
+        - name: projectId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddParticipantRequest'
+      responses:
+        '201':
+          description: Участник добавлен на проект
+        '404':
+          description: Проект или пользователь не найден
+        '409':
+          description: Такая связка (проект-участник-роль) уже существует
+
   /api/v1/users:
     get:
       summary: Получить список всех участников с их ролями
