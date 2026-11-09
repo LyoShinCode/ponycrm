@@ -1,0 +1,73 @@
+Table users {
+  id uuid [pk, default: `gen_random_uuid()`]
+  first_name string [not null]
+  last_name string [not null]
+  middle_name string
+  email string [unique]
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table user_roles {
+  user_id uuid [not null]
+  role string [not null]
+  note: 'Должности человека. M:N: у одного ФИО может быть несколько ролей.'
+
+  indexes {
+    (user_id, role) [pk]
+  }
+}
+
+Table projects {
+  id uuid [pk, default: `gen_random_uuid()`]
+  name string [not null]
+  description string
+  start_date date
+  end_date date
+  status string [note: 'ENUM project_status: active | archived | planning']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table project_participants {
+  project_id uuid [not null]
+  user_id uuid [not null]
+  project_role string [not null, note: 'ENUM ProjectRole (справочник)']
+  is_lead boolean [default: false, note: 'Инвариант: на проекте максимум один lead']
+  joined_at timestamp
+
+  indexes {
+    (project_id, user_id, project_role) [pk]
+  }
+}
+
+Table requirements {
+  id uuid [pk, default: `gen_random_uuid()`]
+  project_id uuid [not null]
+  title string [not null]
+  description string
+  priority string [note: 'ENUM requirement_priority: critical | high | medium | low']
+  status string [note: 'ENUM requirement_status: draft | approved | in_dev | done | rejected']
+  author_id uuid [not null, note: 'FK RESTRICT: автора нельзя удалить, пока есть требования']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Table meeting_notes {
+  id uuid [pk, default: `gen_random_uuid()`]
+  project_id uuid [not null]
+  title string [not null]
+  content string [note: 'Markdown-конспект встречи']
+  meeting_date date [not null]
+  author_id uuid [not null, note: 'FK RESTRICT: автора нельзя удалить, пока есть конспекты']
+  created_at timestamp
+  updated_at timestamp
+}
+
+Ref: user_roles.user_id > users.id [delete: cascade]
+Ref: project_participants.project_id > projects.id [delete: cascade]
+Ref: project_participants.user_id > users.id [delete: cascade]
+Ref: requirements.project_id > projects.id [delete: cascade]
+Ref: requirements.author_id > users.id [delete: restrict]
+Ref: meeting_notes.project_id > projects.id [delete: cascade]
+Ref: meeting_notes.author_id > users.id [delete: restrict]
