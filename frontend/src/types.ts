@@ -13,3 +13,10 @@ export interface User {
     email: string | null
     roles: string[]
 }
+
+export interface Participant {
+    userId: string
+    fio: string
+    projectRole: string
+    isLead: boolean
+}
