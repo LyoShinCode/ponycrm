@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { User } from '../types'
 import UserModal from '../components/UserModal'
 
-export const CHIP_COLORS = [
+const CHIP_COLORS = [
     'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     'bg-sky-50 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300',
     'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
@@ -17,11 +17,16 @@ function UsersPage() {
     const load = () => {
         fetch('http://localhost:8080/api/v1/users')
         .then(res => res.json())
-        .then(data => { setUsers(data); setLoading(false) })
+        .then(data => {
+            setUsers(data)
+            setLoading(false)
+        })
         .catch(() => setLoading(false))
     }
 
-    useEffect(() => { load() }, [])
+    useEffect(() => {
+        load()
+    }, [])
 
     return (
         <div className="max-w-6xl mx-auto">

@@ -1,11 +1,18 @@
 import { useEffect, useState } from 'react'
 import type { Participant, Project } from '../types'
 import ProjectMemberModal from '../components/ProjectMemberModal'
+import ProjectEditModal from '../components/ProjectEditModal'
 
 const STATUS_STYLES: Record<string, string> = {
     planning: 'bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300',
     active: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
     archived: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+    planning: 'Планирование',
+    active: 'Активный',
+    archived: 'В архиве',
 }
 
 function ProjectsPage() {
@@ -17,6 +24,7 @@ function ProjectsPage() {
         projectId: '',
         isOpen: false,
     })
+    const [editModal, setEditModal] = useState<{ project: Project | null }>({ project: null })
 
     const loadParticipants = async (projectId: string) => {
         setLoadingParticipants(prev => ({ ...prev, [projectId]: true }))
@@ -50,7 +58,15 @@ function ProjectsPage() {
     }, [projects])
 
     const createProject = async () => {
-        const res = await fetch('http://localhost:8080/api/v1/projects', { method: 'POST' })
+        const res = await fetch('http://localhost:8080/api/v1/projects', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: 'Новый проект',
+                description: null,
+                status: 'planning',
+            }),
+        })
         if (res.ok) load()
     }
 
@@ -85,8 +101,17 @@ function ProjectsPage() {
                             className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-5 shadow-sm hover:shadow-md transition-shadow"
                         >
                             <div className="flex justify-between items-start mb-2">
-                                <div className="min-w-0">
-                                    <h3 className="font-semibold">{p.name}</h3>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-semibold">{p.name}</h3>
+                                        <button
+                                            onClick={() => setEditModal({ project: p })}
+                                            className="text-xs text-slate-500 hover:text-emerald-600 dark:text-slate-400 dark:hover:text-emerald-400 transition px-2 py-0.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
+                                            title="Редактировать"
+                                        >
+                                            ✏️
+                                        </button>
+                                    </div>
                                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                                         {p.description || 'Без описания'}
                                     </p>
@@ -96,7 +121,7 @@ function ProjectsPage() {
                                         STATUS_STYLES[p.status] ?? STATUS_STYLES.archived
                                     }`}
                                 >
-                  {p.status}
+                  {STATUS_LABELS[p.status] ?? p.status}
                 </span>
                             </div>
 
@@ -153,6 +178,14 @@ function ProjectsPage() {
                     projectId={addMemberModal.projectId}
                     onClose={() => setAddMemberModal({ projectId: '', isOpen: false })}
                     onAdded={() => handleMemberAdded(addMemberModal.projectId)}
+                />
+            )}
+
+            {editModal.project && (
+                <ProjectEditModal
+                    project={editModal.project}
+                    onClose={() => setEditModal({ project: null })}
+                    onUpdated={load}
                 />
             )}
         </div>

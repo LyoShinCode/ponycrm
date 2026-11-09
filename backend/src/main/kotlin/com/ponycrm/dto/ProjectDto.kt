@@ -9,3 +9,10 @@ data class ProjectDto(
     val description: String?,
     val status: String
 )
+
+@Serializable
+data class ProjectUpsertRequest(
+    val name: String,
+    val description: String? = null,
+    val status: String = "planning"
+)

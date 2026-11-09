@@ -14,6 +14,7 @@ import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.update
 import java.util.UUID
 
 fun Route.participantRoutes() {
@@ -55,35 +56,41 @@ fun Route.participantRoutes() {
             val userId = runCatching { UUID.fromString(request.userId) }.getOrNull()
                 ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid userId"))
 
-            DatabaseFactory.dbQuery {
+            val result = DatabaseFactory.dbQuery {
                 val projectExists = ProjectsTable.select { ProjectsTable.id eq projectId }.count() > 0
                 val userExists = UsersTable.select { UsersTable.id eq userId }.count() > 0
-                if (!projectExists || !userExists) {
-                    null
-                } else {
-                    val duplicate = ProjectParticipantsTable.select {
+                if (!projectExists || !userExists) return@dbQuery "not_found"
+
+                val duplicate = ProjectParticipantsTable.select {
+                    (ProjectParticipantsTable.projectId eq projectId) and
+                            (ProjectParticipantsTable.userId eq userId) and
+                            (ProjectParticipantsTable.projectRole eq request.projectRole)
+                }.count() > 0
+                if (duplicate) return@dbQuery "duplicate"
+
+                // КЛЮЧЕВАЯ ЛОГИКА: новый лид вытесняет старого
+                if (request.isLead) {
+                    ProjectParticipantsTable.update({
                         (ProjectParticipantsTable.projectId eq projectId) and
-                                (ProjectParticipantsTable.userId eq userId) and
-                                (ProjectParticipantsTable.projectRole eq request.projectRole)
-                    }.count() > 0
-                    if (duplicate) "duplicate" else "ok"
-                }
-            }.let { check ->
-                when (check) {
-                    null -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "project or user not found"))
-                    "duplicate" -> call.respond(HttpStatusCode.Conflict, mapOf("error" to "participant already assigned with this role"))
-                    else -> {
-                        DatabaseFactory.dbQuery {
-                            ProjectParticipantsTable.insert {
-                                it[this.projectId] = projectId
-                                it[this.userId] = userId
-                                it[projectRole] = request.projectRole
-                                it[isLead] = request.isLead
-                            }
-                        }
-                        call.respond(HttpStatusCode.Created, mapOf("message" to "participant added"))
+                                (ProjectParticipantsTable.isLead eq true)
+                    }) {
+                        it[isLead] = false
                     }
                 }
+
+                ProjectParticipantsTable.insert {
+                    it[this.projectId] = projectId
+                    it[this.userId] = userId
+                    it[projectRole] = request.projectRole
+                    it[isLead] = request.isLead
+                }
+                "ok"
+            }
+
+            when (result) {
+                "not_found" -> call.respond(HttpStatusCode.NotFound, mapOf("error" to "project or user not found"))
+                "duplicate" -> call.respond(HttpStatusCode.Conflict, mapOf("error" to "participant already assigned with this role"))
+                else -> call.respond(HttpStatusCode.Created, mapOf("message" to "participant added"))
             }
         }
     }

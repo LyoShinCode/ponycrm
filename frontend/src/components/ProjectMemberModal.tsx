@@ -1,6 +1,19 @@
 import { useState, useEffect } from 'react'
 import type { User } from '../types'
 
+const PROJECT_ROLES = [
+    'Руководитель проекта',
+    'Системный аналитик',
+    'Бизнес-аналитик',
+    'Архитектор',
+    'Бэкенд-разработчик',
+    'Фронтенд-разработчик',
+    'QA-инженер',
+    'DevOps',
+    'Дизайнер',
+    'Технический писатель',
+]
+
 interface Props {
     projectId: string
     onClose: () => void
@@ -10,8 +23,8 @@ interface Props {
 export default function ProjectMemberModal({ projectId, onClose, onAdded }: Props) {
     const [users, setUsers] = useState<User[]>([])
     const [loading, setLoading] = useState(true)
-    const [selectedUser, setSelectedUser] = useState<string | null>(null)
-    const [projectRole, setProjectRole] = useState('')
+    const [selectedUser, setSelectedUser] = useState<string>('')
+    const [projectRole, setProjectRole] = useState<string>('')
     const [isLead, setIsLead] = useState(false)
     const [error, setError] = useState('')
 
@@ -26,10 +39,9 @@ export default function ProjectMemberModal({ projectId, onClose, onAdded }: Prop
     }, [])
 
     const submit = async () => {
-        if (!selectedUser || !projectRole) {
-            setError('Выбери пользователя и роль')
-            return
-        }
+        if (!selectedUser) { setError('Выбери пользователя'); return }
+        if (!projectRole) { setError('Выбери роль на проекте'); return }
+
         const res = await fetch(
             `http://localhost:8080/api/v1/projects/${projectId}/participants`,
             {
@@ -61,7 +73,7 @@ export default function ProjectMemberModal({ projectId, onClose, onAdded }: Prop
             onClick={onClose}
         >
             <div
-                className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 m-4 max-h-[90vh] overflow-y-auto"
+                className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 m-4"
                 onClick={e => e.stopPropagation()}
             >
                 <h2 className="text-xl font-bold mb-4">Добавить участника в проект</h2>
@@ -75,7 +87,7 @@ export default function ProjectMemberModal({ projectId, onClose, onAdded }: Prop
                     ) : (
                         <select
                             className={inputCls}
-                            value={selectedUser || ''}
+                            value={selectedUser}
                             onChange={e => setSelectedUser(e.target.value)}
                         >
                             <option value="">Выберите пользователя</option>
@@ -90,18 +102,23 @@ export default function ProjectMemberModal({ projectId, onClose, onAdded }: Prop
 
                 <div className="mb-4">
                     <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
-                        Роль на проекте
+                        Роль на проекте <span className="text-slate-400 text-xs">(из справочника)</span>
                     </label>
-                    <input
-                        type="text"
+                    <select
                         className={inputCls}
-                        placeholder="Архитектор, Системный аналитик..."
                         value={projectRole}
                         onChange={e => setProjectRole(e.target.value)}
-                    />
+                    >
+                        <option value="">Выберите роль</option>
+                        {PROJECT_ROLES.map(r => (
+                            <option key={r} value={r}>
+                                {r}
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
-                <div className="flex items-center mb-4">
+                <div className="flex items-center mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
                     <input
                         type="checkbox"
                         id="isLead"
@@ -109,11 +126,13 @@ export default function ProjectMemberModal({ projectId, onClose, onAdded }: Prop
                         onChange={e => setIsLead(e.target.checked)}
                         className="h-4 w-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
                     />
-                    <label
-                        htmlFor="isLead"
-                        className="ml-2 text-sm text-slate-700 dark:text-slate-300"
-                    >
-                        Руководитель проекта
+                    <label htmlFor="isLead" className="ml-2 text-sm text-slate-700 dark:text-slate-300">
+                        <span className="font-medium">Руководитель проекта</span>
+                        {isLead && (
+                            <span className="block text-xs text-amber-700 dark:text-amber-300 mt-0.5">
+                ⚠ Текущий руководитель будет заменён
+              </span>
+                        )}
                     </label>
                 </div>
 
