@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: PonyCRM API
-  version: 1.1.0
-  description: API для управления проектами и требованиями в системе PonyCRM
+  version: 1.2.0
+  description: API для управления проектами и участниками в системе PonyCRM
 servers:
   - url: http://localhost:8080
     description: Локальный сервер разработки
@@ -44,7 +44,7 @@ paths:
 
   /api/v1/projects/{projectId}:
     put:
-      summary: Обновить проект (название, описание, статус)
+      summary: Обновить проект (название, описание, статус, в том числе архивирование)
       operationId: updateProject
       tags:
         - Projects
@@ -156,6 +156,54 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           description: Ошибка валидации
+
+  /api/v1/users/{userId}:
+    put:
+      summary: Обновить участника (ФИО, email, роли заменяются полностью)
+      operationId: updateUser
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+      responses:
+        '200':
+          description: Участник обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: Участник не найден
+        '400':
+          description: Ошибка валидации
+    delete:
+      summary: Удалить участника (каскадно удаляет все его роли и связки с проектами)
+      operationId: deleteUser
+      tags:
+        - Users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Участник удалён
+        '404':
+          description: Участник не найден
 
 components:
   schemas:
