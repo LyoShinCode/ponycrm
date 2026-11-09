@@ -65,13 +65,13 @@ fun Route.projectRoutes() {
             val projectIdParam = call.parameters["projectId"]
             if (projectIdParam == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "projectId is required"))
-                return@put Unit // <-- Явно указываем Unit
+                return@put Unit
             }
 
             val projectId = runCatching<UUID> { UUID.fromString(projectIdParam) }.getOrNull()
             if (projectId == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid projectId"))
-                return@put Unit // <-- Явно указываем Unit
+                return@put Unit
             }
 
             val request = call.receive<ProjectUpsertRequest>()
@@ -80,7 +80,6 @@ fun Route.projectRoutes() {
                 return@put
             }
 
-            // Если request.status объявлен как String?, обрабатываем так же:
             val statusParam = request.status
             if (statusParam.isNullOrBlank()) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid status"))

@@ -3,14 +3,18 @@ package com.ponycrm.routes
 import com.ponycrm.db.DatabaseFactory
 import com.ponycrm.dto.AddParticipantRequest
 import com.ponycrm.dto.ParticipantDto
+import com.ponycrm.enums.RoleCatalog
 import com.ponycrm.models.ProjectParticipantsTable
 import com.ponycrm.models.ProjectsTable
 import com.ponycrm.models.UsersTable
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.call
+import io.ktor.server.request.receive
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.post
+import io.ktor.server.routing.route
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
@@ -52,7 +56,21 @@ fun Route.participantRoutes() {
         post {
             val projectId = runCatching { UUID.fromString(call.parameters["projectId"]) }.getOrNull()
                 ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid projectId"))
+
             val request = call.receive<AddParticipantRequest>()
+
+            if (RoleCatalog.findInvalidProjectRole(request.projectRole)) {
+                call.respond(
+                    HttpStatusCode.BadRequest,
+                    mapOf(
+                        "error" to "invalid project role",
+                        "invalidRole" to request.projectRole,
+                        "allowedRoles" to RoleCatalog.PROJECT_ROLES.toList()
+                    )
+                )
+                return@post
+            }
+
             val userId = runCatching { UUID.fromString(request.userId) }.getOrNull()
                 ?: return@post call.respond(HttpStatusCode.BadRequest, mapOf("error" to "invalid userId"))
 
@@ -68,7 +86,6 @@ fun Route.participantRoutes() {
                 }.count() > 0
                 if (duplicate) return@dbQuery "duplicate"
 
-                // КЛЮЧЕВАЯ ЛОГИКА: новый лид вытесняет старого
                 if (request.isLead) {
                     ProjectParticipantsTable.update({
                         (ProjectParticipantsTable.projectId eq projectId) and

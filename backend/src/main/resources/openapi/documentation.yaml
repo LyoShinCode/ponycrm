@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: PonyCRM API
-  version: 1.2.0
+  version: 1.3.0
   description: API для управления проектами и участниками в системе PonyCRM
 servers:
   - url: http://localhost:8080
@@ -116,6 +116,8 @@ paths:
       responses:
         '201':
           description: Участник добавлен на проект
+        '400':
+          description: Недопустимая роль на проекте
         '404':
           description: Проект или пользователь не найден
         '409':
@@ -137,7 +139,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
     post:
-      summary: Добавить нового участника
+      summary: Добавить нового участника (роли только из фиксированного справочника)
       operationId: createUser
       tags:
         - Users
@@ -155,7 +157,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Ошибка валидации
+          description: Ошибка валидации (в том числе недопустимая роль)
 
   /api/v1/users/{userId}:
     put:
@@ -183,10 +185,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+        '400':
+          description: Ошибка валидации (в том числе недопустимая роль)
         '404':
           description: Участник не найден
-        '400':
-          description: Ошибка валидации
     delete:
       summary: Удалить участника (каскадно удаляет все его роли и связки с проектами)
       operationId: deleteUser
@@ -257,7 +259,7 @@ components:
         roles:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/UserRole'
 
     UserCreateRequest:
       type: object
@@ -279,8 +281,37 @@ components:
         roles:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/UserRole'
           minItems: 1
+
+    UserRole:
+      type: string
+      description: Роль участника из фиксированного справочника
+      enum:
+        - Системный аналитик
+        - Бизнес-аналитик
+        - Архитектор
+        - Дизайнер
+        - Бэкенд-разработчик
+        - Фронтенд-разработчик
+        - QA-инженер
+        - Тимлид
+        - Юрист
+
+    ProjectRole:
+      type: string
+      description: Роль участника на конкретном проекте из фиксированного справочника
+      enum:
+        - Руководитель проекта
+        - Системный аналитик
+        - Бизнес-аналитик
+        - Архитектор
+        - Бэкенд-разработчик
+        - Фронтенд-разработчик
+        - QA-инженер
+        - DevOps
+        - Дизайнер
+        - Технический писатель
 
     Participant:
       type: object
@@ -291,7 +322,7 @@ components:
         fio:
           type: string
         projectRole:
-          type: string
+          $ref: '#/components/schemas/ProjectRole'
         isLead:
           type: boolean
 
@@ -305,8 +336,7 @@ components:
           type: string
           format: uuid
         projectRole:
-          type: string
-          description: Роль выбирается из фиксированного справочника проектных ролей
+          $ref: '#/components/schemas/ProjectRole'
         isLead:
           type: boolean
           default: false
