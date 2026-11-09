@@ -1,72 +1,52 @@
 import { useEffect, useState } from 'react'
+import ProjectsPage from './pages/ProjectsPage'
+import UsersPage from './pages/UsersPage'
 
-interface Project {
-    id: string
-    name: string
-    description: string | null
-    status: string
-}
+type Page = 'projects' | 'users'
 
 function App() {
-    const [projects, setProjects] = useState<Project[]>([])
-    const [loading, setLoading] = useState(true)
+    const [page, setPage] = useState<Page>('projects')
+    const [dark, setDark] = useState(() => localStorage.getItem('ponycrm-theme') === 'dark')
 
-    // Загрузка проектов с бэкенда
     useEffect(() => {
-        fetch('http://localhost:8080/api/v1/projects')
-        .then(res => res.json())
-        .then(data => {
-            setProjects(data)
-            setLoading(false)
-        })
-        .catch(err => {
-            console.error("Ошибка загрузки:", err)
-            setLoading(false)
-        })
-    }, [])
+        document.documentElement.classList.toggle('dark', dark)
+        localStorage.setItem('ponycrm-theme', dark ? 'dark' : 'light')
+    }, [dark])
 
-    // Создание тестового проекта
-    const createProject = () => {
-        fetch('http://localhost:8080/api/v1/projects', { method: 'POST' })
-        .then(() => window.location.reload()) // Перезагружаем для простоты
-    }
+    const navBtn = (active: boolean) =>
+        `w-full text-left px-3 py-2 rounded-lg transition ${
+            active
+                ? 'bg-emerald-50 text-emerald-700 font-medium dark:bg-slate-700 dark:text-emerald-300'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+        }`
 
     return (
-        <div className="min-h-screen bg-pony-bg p-8">
-            <div className="max-w-4xl mx-auto">
-                <header className="flex justify-between items-center mb-8">
-                    <h1 className="text-3xl font-bold text-pony-text">🐴 PonyCRM</h1>
-                    <button
-                        onClick={createProject}
-                        className="px-4 py-2 bg-pony-accent text-white rounded-lg hover:bg-pony-accentHover transition shadow-sm"
-                    >
-                        + Создать проект
+        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 transition-colors">
+            <div className="flex">
+                <aside className="w-60 min-h-screen bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 p-4 flex flex-col gap-1">
+                    <div className="flex items-center gap-2 px-2 py-3 mb-2">
+                        <span className="text-2xl">🐴</span>
+                        <span className="text-lg font-bold">PonyCRM</span>
+                    </div>
+                    <button className={navBtn(page === 'projects')} onClick={() => setPage('projects')}>
+                        📁 Проекты
                     </button>
-                </header>
+                    <button className={navBtn(page === 'users')} onClick={() => setPage('users')}>
+                        👥 Участники
+                    </button>
+                    <div className="mt-auto pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <button
+                            className="w-full text-left px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700 transition"
+                            onClick={() => setDark(!dark)}
+                        >
+                            {dark ? '☀️ Светлая тема' : '🌙 Тёмная тема'}
+                        </button>
+                    </div>
+                </aside>
 
-                <div className="bg-pony-card p-6 rounded-xl shadow-sm border border-slate-200">
-                    <h2 className="text-xl font-semibold text-pony-text mb-4">Мои проекты</h2>
-
-                    {loading ? (
-                        <p className="text-pony-muted">Загрузка...</p>
-                    ) : projects.length === 0 ? (
-                        <p className="text-pony-muted">Проектов пока нет. Нажми кнопку выше, чтобы создать тестовый.</p>
-                    ) : (
-                        <ul className="space-y-3">
-                            {projects.map((project) => (
-                                <li key={project.id} className="p-4 bg-slate-50 rounded-lg border border-slate-100 flex justify-between items-center">
-                                    <div>
-                                        <h3 className="font-medium text-pony-text">{project.name}</h3>
-                                        <p className="text-sm text-pony-muted">{project.description}</p>
-                                    </div>
-                                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
-                    {project.status}
-                  </span>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
+                <main className="flex-1 p-8">
+                    {page === 'projects' ? <ProjectsPage /> : <UsersPage />}
+                </main>
             </div>
         </div>
     )
