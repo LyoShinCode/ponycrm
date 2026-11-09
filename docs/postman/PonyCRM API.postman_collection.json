@@ -1,0 +1,1151 @@
+{
+  "info": {
+    "_postman_id": "0b2bfb22-41e6-4b09-a747-b800f1546994",
+    "name": "PonyCRM API",
+    "description": "API для управления проектами и участниками в системе PonyCRM",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "50901188",
+    "_collection_link": "https://go.postman.co/collection/50901188-0b2bfb22-41e6-4b09-a747-b800f1546994?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "api",
+      "item": [
+        {
+          "name": "v1",
+          "item": [
+            {
+              "name": "projects",
+              "item": [
+                {
+                  "name": "{projectId}",
+                  "item": [
+                    {
+                      "name": "participants",
+                      "item": [
+                        {
+                          "name": "Получить участников проекта с ролями на проекте",
+                          "request": {
+                            "method": "GET",
+                            "header": [
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "projects",
+                                ":projectId",
+                                "participants"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "projectId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "response": [
+                            {
+                              "name": "Список участников проекта",
+                              "originalRequest": {
+                                "method": "GET",
+                                "header": [
+                                  {
+                                    "key": "Accept",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "url": {
+                                  "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "api",
+                                    "v1",
+                                    "projects",
+                                    ":projectId",
+                                    "participants"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "projectId",
+                                      "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "OK",
+                              "code": 200,
+                              "_postman_previewlanguage": "json",
+                              "header": [
+                                {
+                                  "key": "Content-Type",
+                                  "value": "application/json"
+                                }
+                              ],
+                              "cookie": [],
+                              "body": "[\n  {\n    \"userId\": \"290848c3-e98d-b7d0-cd4f-30caf385beeb\",\n    \"fio\": \"string\",\n    \"projectRole\": \"Бизнес-аналитик\",\n    \"isLead\": false\n  },\n  {\n    \"userId\": \"8c98d599-d5be-a695-4b5b-c074d39dad5f\",\n    \"fio\": \"string\",\n    \"projectRole\": \"Бэкенд-разработчик\",\n    \"isLead\": false\n  }\n]"
+                            },
+                            {
+                              "name": "Проект не найден",
+                              "originalRequest": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                  "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "api",
+                                    "v1",
+                                    "projects",
+                                    ":projectId",
+                                    "participants"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "projectId",
+                                      "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "Not Found",
+                              "code": 404,
+                              "_postman_previewlanguage": "text",
+                              "header": [],
+                              "cookie": [],
+                              "body": ""
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Добавить участника на проект (новый лид вытесняет старого)",
+                          "request": {
+                            "method": "POST",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"userId\": \"a7c79b5c-bba8-d8fb-7597-1220ca9129ab\",\n  \"projectRole\": \"Бизнес-аналитик\",\n  \"isLead\": false\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "projects",
+                                ":projectId",
+                                "participants"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "projectId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "response": [
+                            {
+                              "name": "Участник добавлен на проект",
+                              "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                  {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "body": {
+                                  "mode": "raw",
+                                  "raw": "{\n  \"userId\": \"a7c79b5c-bba8-d8fb-7597-1220ca9129ab\",\n  \"projectRole\": \"Бизнес-аналитик\",\n  \"isLead\": false\n}",
+                                  "options": {
+                                    "raw": {
+                                      "headerFamily": "json",
+                                      "language": "json"
+                                    }
+                                  }
+                                },
+                                "url": {
+                                  "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "api",
+                                    "v1",
+                                    "projects",
+                                    ":projectId",
+                                    "participants"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "projectId",
+                                      "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "Created",
+                              "code": 201,
+                              "_postman_previewlanguage": "text",
+                              "header": [],
+                              "cookie": [],
+                              "body": ""
+                            },
+                            {
+                              "name": "Недопустимая роль на проекте",
+                              "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                  {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "body": {
+                                  "mode": "raw",
+                                  "raw": "{\n  \"userId\": \"a7c79b5c-bba8-d8fb-7597-1220ca9129ab\",\n  \"projectRole\": \"Бизнес-аналитик\",\n  \"isLead\": false\n}",
+                                  "options": {
+                                    "raw": {
+                                      "headerFamily": "json",
+                                      "language": "json"
+                                    }
+                                  }
+                                },
+                                "url": {
+                                  "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "api",
+                                    "v1",
+                                    "projects",
+                                    ":projectId",
+                                    "participants"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "projectId",
+                                      "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "Bad Request",
+                              "code": 400,
+                              "_postman_previewlanguage": "text",
+                              "header": [],
+                              "cookie": [],
+                              "body": ""
+                            },
+                            {
+                              "name": "Проект или пользователь не найден",
+                              "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                  {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "body": {
+                                  "mode": "raw",
+                                  "raw": "{\n  \"userId\": \"a7c79b5c-bba8-d8fb-7597-1220ca9129ab\",\n  \"projectRole\": \"Бизнес-аналитик\",\n  \"isLead\": false\n}",
+                                  "options": {
+                                    "raw": {
+                                      "headerFamily": "json",
+                                      "language": "json"
+                                    }
+                                  }
+                                },
+                                "url": {
+                                  "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "api",
+                                    "v1",
+                                    "projects",
+                                    ":projectId",
+                                    "participants"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "projectId",
+                                      "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "Not Found",
+                              "code": 404,
+                              "_postman_previewlanguage": "text",
+                              "header": [],
+                              "cookie": [],
+                              "body": ""
+                            },
+                            {
+                              "name": "Такая связка уже существует",
+                              "originalRequest": {
+                                "method": "POST",
+                                "header": [
+                                  {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                  }
+                                ],
+                                "body": {
+                                  "mode": "raw",
+                                  "raw": "{\n  \"userId\": \"a7c79b5c-bba8-d8fb-7597-1220ca9129ab\",\n  \"projectRole\": \"Бизнес-аналитик\",\n  \"isLead\": false\n}",
+                                  "options": {
+                                    "raw": {
+                                      "headerFamily": "json",
+                                      "language": "json"
+                                    }
+                                  }
+                                },
+                                "url": {
+                                  "raw": "{{baseUrl}}/api/v1/projects/:projectId/participants",
+                                  "host": [
+                                    "{{baseUrl}}"
+                                  ],
+                                  "path": [
+                                    "api",
+                                    "v1",
+                                    "projects",
+                                    ":projectId",
+                                    "participants"
+                                  ],
+                                  "variable": [
+                                    {
+                                      "key": "projectId",
+                                      "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                    }
+                                  ]
+                                }
+                              },
+                              "status": "Conflict",
+                              "code": 409,
+                              "_postman_previewlanguage": "text",
+                              "header": [],
+                              "cookie": [],
+                              "body": ""
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Обновить проект (название, описание, статус, в том числе архивирование)",
+                      "request": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"name\": \"string\",\n  \"status\": \"planning\",\n  \"description\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/projects/:projectId",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "projects",
+                            ":projectId"
+                          ],
+                          "variable": [
+                            {
+                              "key": "projectId",
+                              "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "name": "Проект обновлён",
+                          "originalRequest": {
+                            "method": "PUT",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"name\": \"string\",\n  \"status\": \"planning\",\n  \"description\": \"string\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/projects/:projectId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "projects",
+                                ":projectId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "projectId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "body": "{\n  \"id\": \"3b68b02a-5361-6f4f-5916-f2c1ccdf5a6b\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"status\": \"planning\"\n}"
+                        },
+                        {
+                          "name": "Проект не найден",
+                          "originalRequest": {
+                            "method": "PUT",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"name\": \"string\",\n  \"status\": \"planning\",\n  \"description\": \"string\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/projects/:projectId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "projects",
+                                ":projectId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "projectId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Not Found",
+                          "code": 404,
+                          "_postman_previewlanguage": "text",
+                          "header": [],
+                          "cookie": [],
+                          "body": ""
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Получить список всех проектов",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/projects",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "projects"
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Список проектов",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/projects",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "projects"
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "[\n  {\n    \"id\": \"aca0412e-c1c9-b531-c5fc-fbcf0b346111\",\n    \"name\": \"string\",\n    \"description\": \"string\",\n    \"status\": \"planning\"\n  },\n  {\n    \"id\": \"7f296039-c2fa-26c9-a4a0-ded7a5b01496\",\n    \"name\": \"string\",\n    \"description\": \"string\",\n    \"status\": \"planning\"\n  }\n]"
+                    }
+                  ]
+                },
+                {
+                  "name": "Создать новый проект",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"name\": \"string\",\n  \"status\": \"planning\",\n  \"description\": \"string\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/projects",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "projects"
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Проект создан",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"name\": \"string\",\n  \"status\": \"planning\",\n  \"description\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/projects",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "projects"
+                          ]
+                        }
+                      },
+                      "status": "Created",
+                      "code": 201,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"id\": \"3b68b02a-5361-6f4f-5916-f2c1ccdf5a6b\",\n  \"name\": \"string\",\n  \"description\": \"string\",\n  \"status\": \"planning\"\n}"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "name": "users",
+              "item": [
+                {
+                  "name": "{userId}",
+                  "item": [
+                    {
+                      "name": "Обновить участника (ФИО, email, роли заменяются полностью)",
+                      "request": {
+                        "method": "PUT",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/users/:userId",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "users",
+                            ":userId"
+                          ],
+                          "variable": [
+                            {
+                              "key": "userId",
+                              "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "name": "Участник обновлён",
+                          "originalRequest": {
+                            "method": "PUT",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              },
+                              {
+                                "key": "Accept",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/users/:userId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "users",
+                                ":userId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "userId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "OK",
+                          "code": 200,
+                          "_postman_previewlanguage": "json",
+                          "header": [
+                            {
+                              "key": "Content-Type",
+                              "value": "application/json"
+                            }
+                          ],
+                          "cookie": [],
+                          "body": "{\n  \"id\": \"d643f262-dada-54c9-e9d3-de090dfc0bfa\",\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"middleName\": \"string\",\n  \"email\": \"string\",\n  \"roles\": [\n    \"Системный аналитик\",\n    \"Архитектор\"\n  ]\n}"
+                        },
+                        {
+                          "name": "Ошибка валидации (в том числе недопустимая роль)",
+                          "originalRequest": {
+                            "method": "PUT",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/users/:userId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "users",
+                                ":userId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "userId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Bad Request",
+                          "code": 400,
+                          "_postman_previewlanguage": "text",
+                          "header": [],
+                          "cookie": [],
+                          "body": ""
+                        },
+                        {
+                          "name": "Участник не найден",
+                          "originalRequest": {
+                            "method": "PUT",
+                            "header": [
+                              {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                              }
+                            ],
+                            "body": {
+                              "mode": "raw",
+                              "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                              "options": {
+                                "raw": {
+                                  "headerFamily": "json",
+                                  "language": "json"
+                                }
+                              }
+                            },
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/users/:userId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "users",
+                                ":userId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "userId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Not Found",
+                          "code": 404,
+                          "_postman_previewlanguage": "text",
+                          "header": [],
+                          "cookie": [],
+                          "body": ""
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Удалить участника (каскадно удаляет все его роли и связки с проектами)",
+                      "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/users/:userId",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "users",
+                            ":userId"
+                          ],
+                          "variable": [
+                            {
+                              "key": "userId",
+                              "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                            }
+                          ]
+                        }
+                      },
+                      "response": [
+                        {
+                          "name": "Участник удалён",
+                          "originalRequest": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/users/:userId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "users",
+                                ":userId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "userId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "No Content",
+                          "code": 204,
+                          "_postman_previewlanguage": "text",
+                          "header": [],
+                          "cookie": [],
+                          "body": ""
+                        },
+                        {
+                          "name": "Участник не найден",
+                          "originalRequest": {
+                            "method": "DELETE",
+                            "header": [],
+                            "url": {
+                              "raw": "{{baseUrl}}/api/v1/users/:userId",
+                              "host": [
+                                "{{baseUrl}}"
+                              ],
+                              "path": [
+                                "api",
+                                "v1",
+                                "users",
+                                ":userId"
+                              ],
+                              "variable": [
+                                {
+                                  "key": "userId",
+                                  "value": "47dbfb6d-46ff-3d83-27e5-1a2db3b6b9f6"
+                                }
+                              ]
+                            }
+                          },
+                          "status": "Not Found",
+                          "code": 404,
+                          "_postman_previewlanguage": "text",
+                          "header": [],
+                          "cookie": [],
+                          "body": ""
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "name": "Получить список всех участников с их ролями",
+                  "request": {
+                    "method": "GET",
+                    "header": [
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "users"
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Список участников",
+                      "originalRequest": {
+                        "method": "GET",
+                        "header": [
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/users",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "users"
+                          ]
+                        }
+                      },
+                      "status": "OK",
+                      "code": 200,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "[\n  {\n    \"id\": \"75cc5a38-0a63-d059-a9d6-99fa76f9ab21\",\n    \"lastName\": \"string\",\n    \"firstName\": \"string\",\n    \"middleName\": \"string\",\n    \"email\": \"string\",\n    \"roles\": [\n      \"Бизнес-аналитик\",\n      \"QA-инженер\"\n    ]\n  },\n  {\n    \"id\": \"7a2ec088-87d8-90da-6ec8-834b824c2f0b\",\n    \"lastName\": \"string\",\n    \"firstName\": \"string\",\n    \"middleName\": \"string\",\n    \"email\": \"string\",\n    \"roles\": [\n      \"Бизнес-аналитик\",\n      \"Дизайнер\"\n    ]\n  }\n]"
+                    }
+                  ]
+                },
+                {
+                  "name": "Добавить нового участника (роли только из фиксированного справочника)",
+                  "request": {
+                    "method": "POST",
+                    "header": [
+                      {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                      },
+                      {
+                        "key": "Accept",
+                        "value": "application/json"
+                      }
+                    ],
+                    "body": {
+                      "mode": "raw",
+                      "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                      "options": {
+                        "raw": {
+                          "headerFamily": "json",
+                          "language": "json"
+                        }
+                      }
+                    },
+                    "url": {
+                      "raw": "{{baseUrl}}/api/v1/users",
+                      "host": [
+                        "{{baseUrl}}"
+                      ],
+                      "path": [
+                        "api",
+                        "v1",
+                        "users"
+                      ]
+                    }
+                  },
+                  "response": [
+                    {
+                      "name": "Участник создан",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          },
+                          {
+                            "key": "Accept",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/users",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "users"
+                          ]
+                        }
+                      },
+                      "status": "Created",
+                      "code": 201,
+                      "_postman_previewlanguage": "json",
+                      "header": [
+                        {
+                          "key": "Content-Type",
+                          "value": "application/json"
+                        }
+                      ],
+                      "cookie": [],
+                      "body": "{\n  \"id\": \"d643f262-dada-54c9-e9d3-de090dfc0bfa\",\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"middleName\": \"string\",\n  \"email\": \"string\",\n  \"roles\": [\n    \"Системный аналитик\",\n    \"Архитектор\"\n  ]\n}"
+                    },
+                    {
+                      "name": "Ошибка валидации (в том числе недопустимая роль)",
+                      "originalRequest": {
+                        "method": "POST",
+                        "header": [
+                          {
+                            "key": "Content-Type",
+                            "value": "application/json"
+                          }
+                        ],
+                        "body": {
+                          "mode": "raw",
+                          "raw": "{\n  \"lastName\": \"string\",\n  \"firstName\": \"string\",\n  \"roles\": [\n    \"Бэкенд-разработчик\"\n  ],\n  \"middleName\": \"string\",\n  \"email\": \"string\"\n}",
+                          "options": {
+                            "raw": {
+                              "headerFamily": "json",
+                              "language": "json"
+                            }
+                          }
+                        },
+                        "url": {
+                          "raw": "{{baseUrl}}/api/v1/users",
+                          "host": [
+                            "{{baseUrl}}"
+                          ],
+                          "path": [
+                            "api",
+                            "v1",
+                            "users"
+                          ]
+                        }
+                      },
+                      "status": "Bad Request",
+                      "code": 400,
+                      "_postman_previewlanguage": "text",
+                      "header": [],
+                      "cookie": [],
+                      "body": ""
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    }
+  ]
+}
