@@ -3,6 +3,7 @@ package com.ponycrm.routes
 import com.ponycrm.db.DatabaseFactory
 import com.ponycrm.dto.UserCreateRequest
 import com.ponycrm.dto.UserDto
+import com.ponycrm.dto.ValidationErrorDto
 import com.ponycrm.enums.RoleCatalog
 import com.ponycrm.models.UserRolesTable
 import com.ponycrm.models.UsersTable
@@ -57,10 +58,10 @@ fun Route.userRoutes() {
             if (invalid.isNotEmpty()) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    mapOf(
-                        "error" to "invalid user roles",
-                        "invalidRoles" to invalid,
-                        "allowedRoles" to RoleCatalog.USER_ROLES.toList()
+                    ValidationErrorDto(
+                        error = "invalid user roles",
+                        invalidRoles = invalid,
+                        allowedRoles = RoleCatalog.USER_ROLES.toList()
                     )
                 )
                 return@post
@@ -104,10 +105,10 @@ fun Route.userRoutes() {
             if (invalid.isNotEmpty()) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    mapOf(
-                        "error" to "invalid user roles",
-                        "invalidRoles" to invalid,
-                        "allowedRoles" to RoleCatalog.USER_ROLES.toList()
+                    ValidationErrorDto(
+                        error = "invalid user roles",
+                        invalidRoles = invalid,
+                        allowedRoles = RoleCatalog.USER_ROLES.toList()
                     )
                 )
                 return@put
@@ -122,6 +123,7 @@ fun Route.userRoutes() {
                 }
                 if (rows == 0) return@dbQuery 0
 
+                // КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ: импорт SqlExpressionBuilder.eq решает проблему
                 UserRolesTable.deleteWhere { UserRolesTable.userId eq userId }
                 request.roles.forEach { roleName ->
                     UserRolesTable.insert {

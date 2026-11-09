@@ -3,6 +3,7 @@ package com.ponycrm.routes
 import com.ponycrm.db.DatabaseFactory
 import com.ponycrm.dto.AddParticipantRequest
 import com.ponycrm.dto.ParticipantDto
+import com.ponycrm.dto.ValidationErrorSingleDto
 import com.ponycrm.enums.RoleCatalog
 import com.ponycrm.models.ProjectParticipantsTable
 import com.ponycrm.models.ProjectsTable
@@ -62,10 +63,10 @@ fun Route.participantRoutes() {
             if (RoleCatalog.findInvalidProjectRole(request.projectRole)) {
                 call.respond(
                     HttpStatusCode.BadRequest,
-                    mapOf(
-                        "error" to "invalid project role",
-                        "invalidRole" to request.projectRole,
-                        "allowedRoles" to RoleCatalog.PROJECT_ROLES.toList()
+                    ValidationErrorSingleDto(
+                        error = "invalid project role",
+                        invalidRole = request.projectRole,
+                        allowedRoles = RoleCatalog.PROJECT_ROLES.toList()
                     )
                 )
                 return@post
